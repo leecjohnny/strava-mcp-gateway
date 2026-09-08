@@ -11,6 +11,8 @@ Connect ChatGPT to [Strava](https://support.strava.com/en-us/articles/15401531-s
 
 ## Get started
 
+Enable [developer mode](https://developers.openai.com/api/docs/guides/developer-mode) in ChatGPT before connecting.
+
 1. Choose a deployment option above.
 2. Open your deployment's homepage and follow the instructions to connect Strava. It displays the correct MCP URL automatically.
 
