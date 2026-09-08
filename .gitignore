@@ -1,0 +1,12 @@
+local-secrets/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+.wrangler/
+.vercel/
+dist/
+node_modules/
+.generated/

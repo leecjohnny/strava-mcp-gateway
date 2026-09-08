@@ -1,0 +1,14 @@
+@import 'tailwindcss' source(none);
+@source '../pages.ts';
+@source './app.tsx';
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-amber-600);
+    outline-offset: 3px;
+  }
+}

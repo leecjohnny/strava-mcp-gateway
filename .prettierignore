@@ -1,0 +1,8 @@
+node_modules/
+.generated/
+dist/
+.wrangler/
+.vercel/
+local-secrets/
+.dev.vars*
+.env*
