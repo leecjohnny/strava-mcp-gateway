@@ -29,5 +29,3 @@ For Sites, follow the [deployment prompt](../prompts/deploy-sites.md) and publis
 ## Relay behavior
 
 The server stores no tokens or sessions. ChatGPT holds Strava-issued tokens and refreshes them through the gateway. Strava always receives exactly `http://localhost:61847/callback` during authorization and code exchange. Tokens pass through directly, without gateway-specific audience isolation.
-
-[Local checks](../README.md#develop) use mocked Strava responses; they do not verify live account linking.
