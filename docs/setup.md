@@ -18,25 +18,11 @@ Cloudflare also supports CLI deployment with `npx wrangler login`, then `npm run
 
 Sites uses the [deployment prompt](../prompts/deploy-sites.md) and **Anyone on the internet** audience. `npm run build:sites` prepares `dist/sites/worker.js` and `.openai/hosting.json`, with no D1 or R2 storage. It does not create a Site, push source, validate the final archive, or publish. When updating, reuse the selected Site and its `project_id`, even if the repository template omits that ID.
 
-On the tested public Site, `/mcp` returned a Sites-generated `404`, while `/api/mcp` reached the Worker. Set the public runtime variable `MCP_PATH=/api/mcp` for Sites before packaging and publication. This candidate is tested locally; it still needs republication and an anonymous public `401` check. Native Sites MCP registration is separate: this change does not declare an MCP server to Sites. After hosted checks pass, use the exact `/api/mcp` URL when manually adding a custom MCP server to ChatGPT.
+On the tested public Site, `/mcp` returned a Sites-generated `404`, while `/api/mcp` reached the Worker. Set the public runtime variable `MCP_PATH=/api/mcp` for Sites before packaging and publication. This candidate is tested locally; it still needs republication and an anonymous public `401` check. Native Sites MCP registration is separate: this change does not declare an MCP server to Sites. After hosted checks pass, follow the deployment's homepage to connect.
 
-## ChatGPT OAuth settings
+## Connect Strava
 
-| Field                         | Value                                                   |
-| ----------------------------- | ------------------------------------------------------- |
-| MCP URL                       | `https://YOUR-DEPLOYMENT/mcp`                           |
-| Client registration           | Client ID Metadata Document (CIMD)                      |
-| Client metadata / ID          | `https://chatgpt.com/oauth/client.json`                 |
-| Token endpoint authentication | `none` — public client with PKCE                        |
-| Client secret                 | None                                                    |
-| Scope                         | `mcp:read`                                              |
-| Authorization endpoint        | `https://YOUR-DEPLOYMENT/authorize`                     |
-| Token endpoint                | `https://YOUR-DEPLOYMENT/token`                         |
-| ChatGPT callback              | `https://chatgpt.com/connector_platform_oauth_redirect` |
-
-The defaults match ChatGPT's [published metadata](https://chatgpt.com/oauth/client.json). The relay advertises issuer identification and accepts public-client authentication with PKCE. Confirm the callback shown during connector setup. See [OpenAI's client-registration guide](https://developers.openai.com/plugins/build/auth#client-registration).
-
-For Sites, use `https://YOUR-DEPLOYMENT/api/mcp` with `MCP_PATH=/api/mcp`. The landing page displays the configured MCP URL. Discovery and OAuth requests must use that same resource URL.
+Open your deployment's homepage and follow its instructions. Copy the MCP URL it displays into ChatGPT's custom plugin setup, choose **OAuth**, and continue with the sign-in guide.
 
 ## Browser sign-in
 
@@ -52,22 +38,16 @@ ChatGPT exchanges the code through the gateway with its original PKCE verifier. 
 
 ChatGPT stores the Strava-issued access and refresh tokens and requests refresh through the gateway's `/token` endpoint. Each refresh makes one request directly to Strava with the supplied refresh token and Strava's fixed public client ID; no client secret or metadata lookup is needed. The gateway returns the replacement tokens without storing them or refreshing them in the background. The manual step is needed for each new authorization; ordinary refresh and Worker restarts do not require it.
 
-## Optional configuration
+## Deployment URL configuration
 
 No environment file is needed with the defaults. These values are public configuration:
 
 | Variable        | Default / purpose                                                                   |
 | --------------- | ----------------------------------------------------------------------------------- |
-| `CLIENT_ID`     | `https://chatgpt.com/oauth/client.json` — public OAuth client metadata URL          |
-| `REDIRECT_URI`  | `https://chatgpt.com/connector_platform_oauth_redirect` — one exact HTTPS callback  |
 | `PUBLIC_ORIGIN` | Automatically derived; override with an exact HTTPS origin without a trailing slash |
 | `MCP_PATH`      | `/mcp`; use `/api/mcp` for the Sites candidate                                      |
 
-Each deployment accepts one client and one exact callback. Wildcards and callback lists are unsupported. The old `REDIRECT_URIS` setting is rejected.
-
 `MCP_PATH` selects one endpoint and its OAuth resource; it does not create an alias. For `/api/mcp`, path-specific discovery is `/.well-known/oauth-protected-resource/api/mcp`. Update the MCP URL and relink existing clients after changing this setting; requests with the old resource are rejected.
-
-For a URL client ID, the relay fetches only that configured metadata URL and checks its identity, callback, and support for authentication method `none`. A static ID can be configured for a pre-registered public client without CIMD.
 
 ## Runtime and local checks
 
@@ -117,7 +97,3 @@ Browser checks run separately from `npm run check`, which covers unit and worker
 This is a transparent token relay: ChatGPT receives Strava-issued access and refresh tokens, and Strava enforces token validity, scopes, PKCE, code expiry and single use, and refresh rotation. The relay uses fixed upstream hosts, bounded bodies, disabled redirects, and header allowlists. Keep hosting logs from recording credentials or OAuth query strings.
 
 The relay does not wrap tokens, isolate their audience to the gateway, or restrict use to the deployer's account. Anyone with valid Strava credentials can use it for the account those credentials authorize. Token passthrough does not satisfy [MCP's gateway-specific token-isolation requirements](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization#token-handling); this tradeoff is intentional for this personal relay.
-
-## Updating the encrypted prototype
-
-Relink ChatGPT after upgrading; old encrypted token envelopes cannot be used as Strava tokens. Remove `KEYRING`, `CLIENT_SECRET`, and `OWNER_KEY` from hosting settings, switch ChatGPT to public CIMD, and replace `REDIRECT_URIS` with one `REDIRECT_URI`. Retired local secret files are ignored and unused.
